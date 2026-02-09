@@ -2,113 +2,110 @@
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>מערכת ניהול משלוחים</title>
+    <title>מערכת ניהול - תצוגה מלאה</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAoqZcRqAlFYGkQ6oCoQCctvkCq4SnPCM&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAoqZcRqAlFYGkQ6oCoQCctvkCq4SnPCM&libraries=places,geometry"></script>
     
     <style>
         body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; height: 100vh; overflow: hidden; background: #f4f6f8; }
         
         #sidebar { 
-            width: 400px; background: white; padding: 25px; 
+            width: 380px; background: white; padding: 20px; 
             box-shadow: 4px 0 15px rgba(0,0,0,0.05); z-index: 10; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 20px; 
+            overflow-y: auto; display: flex; flex-direction: column; gap: 15px; 
         }
 
         #map { flex-grow: 1; height: 100%; }
 
-        h2 { margin: 0; color: #2c3e50; font-size: 22px; display: flex; align-items: center; gap: 10px; }
-        .section-title { 
-            font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
-            color: #7f8c8d; font-weight: 700; border-bottom: 2px solid #ecf0f1; 
-            padding-bottom: 8px; margin-bottom: 10px; 
-        }
+        h2 { margin: 0; color: #2c3e50; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 12px; color: #7f8c8d; font-weight: bold; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 10px; }
 
-        .input-group { position: relative; margin-bottom: 12px; transition: all 0.3s; }
-        .input-wrapper { position: relative; }
+        .input-group { 
+            position: relative; 
+            margin-bottom: 10px; 
+            width: 100%;
+        }
         
         input { 
-            width: 100%; padding: 14px; /* ביטלנו את הריווח הגדול לאייקון */
-            border: 1px solid #dfe6e9; border-radius: 8px; 
-            font-size: 14px; box-sizing: border-box; transition: 0.2s; background: #fdfdfd;
+            width: 100%; 
+            padding: 12px;
+            padding-left: 40px; /* מקום ל-X */
+            border: 1px solid #dfe6e9; border-radius: 6px; 
+            font-size: 14px; box-sizing: border-box; background: #fdfdfd;
         }
-        input:focus { border-color: #3498db; outline: none; background: white; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        input:focus { border-color: #3498db; outline: none; background: white; }
         
-        /* צבעים שונים לסוגי שדות (פס צדדי בלבד) */
-        .pickup-field input { border-right: 5px solid #2ecc71; } /* ירוק */
-        .drop-field input { border-right: 5px solid #e74c3c; } /* אדום */
+        .pickup-field input { border-right: 4px solid #2ecc71; }
+        .drop-field input { border-right: 4px solid #e74c3c; }
 
-        /* כפתור מחיקה */
+        /* כפתור המחיקה - מתוקן */
         .remove-btn { 
-            position: absolute; left: 10px; top: 50%; transform: translateY(-50%); 
-            cursor: pointer; color: #dfe6e9; border: none; background: none; font-size: 16px; 
-            transition: 0.2s;
+            position: absolute; 
+            left: 5px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            width: 30px !important; 
+            height: 30px;
+            cursor: pointer; 
+            color: #bdc3c7; 
+            border: none; background: none; 
+            font-size: 16px; 
+            padding: 0;
+            z-index: 10;
+            display: flex; align-items: center; justify-content: center;
         }
-        .remove-btn:hover { color: #e74c3c; }
+        .remove-btn:hover { color: #e74c3c; background-color: rgba(231, 76, 60, 0.1); border-radius: 50%; }
 
         button { 
-            padding: 14px; border: none; border-radius: 8px; font-size: 15px; 
-            cursor: pointer; font-weight: 600; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: center; gap: 10px; 
+            padding: 12px; border: none; border-radius: 6px; font-size: 14px; 
+            cursor: pointer; font-weight: 600; transition: 0.2s; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
         }
         
         #addBtn { background: #f1f2f6; color: #2c3e50; border: 1px dashed #bdc3c7; }
-        #addBtn:hover { background: #dfe4ea; border-color: #a4b0be; }
+        #addBtn:hover { background: #dfe4ea; }
         
-        #sendBtn { 
-            background: #3498db; color: white; margin-top: auto; 
-            box-shadow: 0 4px 10px rgba(52,152,219,0.3); 
-        }
-        #sendBtn:hover { background: #2980b9; transform: translateY(-2px); }
+        #sendBtn { background: #3498db; color: white; margin-top: auto; }
+        #sendBtn:hover { background: #2980b9; }
 
         .status-card { 
-            background: white; padding: 15px; border-radius: 10px; 
-            border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ecf0f1; 
+            display: flex; align-items: center; gap: 15px; 
         }
         .status-icon-bg {
-            width: 40px; height: 40px; background: #ecf0f1; border-radius: 50%;
+            width: 35px; height: 35px; background: #ecf0f1; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; color: #95a5a6;
         }
         .status-active .status-icon-bg { background: #e8f8f5; color: #2ecc71; }
-        .status-text { font-size: 14px; font-weight: bold; color: #7f8c8d; }
-        .status-sub { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
+        .status-text { font-size: 13px; font-weight: bold; color: #7f8c8d; }
+        .status-sub { font-size: 11px; color: #bdc3c7; }
 
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h2><i class="fa-solid fa-truck-fast"></i> מרכז שליטה</h2>
-        
-        <div>
-            <div class="section-title">נקודת איסוף (מחסן)</div>
-            <div id="pickup-container"></div>
-        </div>
-
-        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
-            <div class="section-title">נקודות פיזור (לקוחות)</div>
-            <div id="drops-container"></div>
-            
-            <button id="addBtn" onclick="addDrop()">
-                <i class="fa-solid fa-plus"></i> הוסף לקוח נוסף
-            </button>
-        </div>
+        <h2><i class="fa-solid fa-map-location-dot"></i> ניהול משלוחים</h2>
         
         <div class="status-card" id="statusCard">
-            <div class="status-icon-bg">
-                <i class="fa-solid fa-motorcycle"></i>
-            </div>
+            <div class="status-icon-bg"><i class="fa-solid fa-car-side"></i></div>
             <div>
-                <div class="status-text" id="courierStatus">השליח מנותק</div>
-                <div class="status-sub" id="lastUpdate">ממתין לחיבור...</div>
+                <div class="status-text" id="courierStatus">ממתין לחיבור שליח...</div>
+                <div class="status-sub" id="lastUpdate">--:--</div>
             </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <div class="section-title">הגדרת מסלול חדש</div>
+            <div id="pickup-container"></div>
+            <div id="drops-container"></div>
+            <button id="addBtn" onclick="addDrop()"><i class="fa-solid fa-plus"></i> הוסף יעד</button>
         </div>
 
         <button id="sendBtn" onclick="dispatchMission()">
-            <i class="fa-solid fa-paper-plane"></i> שגר מסלול לשליח
+            <i class="fa-solid fa-paper-plane"></i> שגר משימה לשליח
         </button>
     </div>
 
@@ -131,20 +128,31 @@
         const db = getFirestore(app);
         
         let map, courierMarker;
+        let directionsService, directionsRenderer;
+        let routeMarkers = []; 
 
         window.initMap = function() {
             map = new google.maps.Map(document.getElementById("map"), {
                 center: { lat: 32.0853, lng: 34.7818 },
                 zoom: 12,
-                disableDefaultUI: false,
-                styles: [{ "featureType": "poi", "stylers": [{ "visibility": "off" }] }]
+                disableDefaultUI: false
             });
 
-            // יצירת שדות ללא אייקונים
-            createInput("pickup-container", "הזן כתובת איסוף...", "pickup-field", false);
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true, 
+                polylineOptions: {
+                    strokeColor: "#4285F4", 
+                    strokeWeight: 5
+                }
+            });
+
+            createInput("pickup-container", "נקודת איסוף...", "pickup-field", false);
             addDrop();
 
             listenToCourier();
+            listenToMission();
         }
 
         function listenToCourier() {
@@ -153,61 +161,154 @@
                     const data = doc.data();
                     const pos = { lat: data.latitude, lng: data.longitude };
                     
-                    const statusCard = document.getElementById("statusCard");
-                    statusCard.classList.add("status-active");
-                    document.getElementById("courierStatus").innerText = "השליח מחובר ובתנועה";
-                    document.getElementById("courierStatus").style.color = "#2ecc71";
-                    document.getElementById("lastUpdate").innerText = "עודכן: " + new Date().toLocaleTimeString();
+                    updateStatusCard(true);
 
                     if (!courierMarker) {
                         courierMarker = new google.maps.Marker({
                             position: pos, map: map,
                             icon: { 
-                                url: "https://cdn-icons-png.flaticon.com/512/3063/3063823.png", 
-                                scaledSize: new google.maps.Size(45, 45) 
+                                url: "https://cdn-icons-png.flaticon.com/512/7541/7541900.png", 
+                                scaledSize: new google.maps.Size(50, 50),
+                                anchor: new google.maps.Point(25, 25)
                             },
                             title: "השליח",
-                            animation: google.maps.Animation.DROP
+                            zIndex: 999
                         });
                     } else {
                         courierMarker.setPosition(pos);
                     }
-                    map.panTo(pos);
                 }
             });
         }
 
-        // פונקציה מעודכנת ללא פרמטר לאייקון
+        function listenToMission() {
+            onSnapshot(doc(db, "deliveries", "mission1"), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.stops && Array.isArray(data.stops) && data.stops.length >= 2) {
+                        calculateAndDrawRoute(data.stops);
+                    } else {
+                        directionsRenderer.setDirections({routes: []});
+                        clearRouteMarkers();
+                    }
+                }
+            });
+        }
+
+        function calculateAndDrawRoute(stops) {
+            const origin = stops[0];
+            const destination = stops[stops.length - 1];
+            // שולחים את כל נקודות האמצע
+            const waypoints = stops.slice(1, -1).map(stop => ({
+                location: { lat: stop.lat, lng: stop.lng },
+                stopover: true
+            }));
+
+            const request = {
+                origin: { lat: origin.lat, lng: origin.lng },
+                destination: { lat: destination.lat, lng: destination.lng },
+                waypoints: waypoints,
+                optimizeWaypoints: true, // <--- התיקון החשוב: בקשה מגוגל לסדר את המסלול
+                travelMode: 'DRIVING'
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // --- סידור מחדש של המספרים לפי מה שגוגל החליט ---
+                    const optimizedOrder = result.routes[0].waypoint_order;
+                    
+                    // בונים את המערך מחדש לפי הסדר האופטימלי:
+                    // 1. התחלה
+                    const sortedStops = [stops[0]];
+                    
+                    // 2. האמצע (לפי הסדר של גוגל)
+                    optimizedOrder.forEach(index => {
+                        // האינדקס של גוגל מתייחס ל-waypoints (בלי ההתחלה והסוף)
+                        // לכן מוסיפים +1 כדי למצוא את הנקודה במערך המקורי
+                        sortedStops.push(stops[index + 1]);
+                    });
+                    
+                    // 3. הסוף
+                    sortedStops.push(stops[stops.length - 1]);
+
+                    // מציירים את המספרים לפי הסדר החדש והנכון
+                    drawNumberedMarkers(sortedStops); 
+                } else {
+                    console.error("Directions request failed due to " + status);
+                }
+            });
+        }
+
+        function drawNumberedMarkers(stops) {
+            clearRouteMarkers(); 
+
+            stops.forEach((stop, index) => {
+                const color = index === 0 ? "2ecc71" : "e74c3c"; 
+                
+                const marker = new google.maps.Marker({
+                    position: { lat: stop.lat, lng: stop.lng },
+                    map: map,
+                    label: {
+                        text: (index + 1).toString(),
+                        color: "white",
+                        fontWeight: "bold"
+                    },
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 16,
+                        fillColor: "#" + color,
+                        fillOpacity: 1,
+                        strokeWeight: 2,
+                        strokeColor: "white",
+                    },
+                    zIndex: 10 + index
+                });
+
+                routeMarkers.push(marker);
+            });
+        }
+
+        function clearRouteMarkers() {
+            for (let i = 0; i < routeMarkers.length; i++) {
+                routeMarkers[i].setMap(null);
+            }
+            routeMarkers = [];
+        }
+
+        function updateStatusCard(active) {
+            const card = document.getElementById("statusCard");
+            const text = document.getElementById("courierStatus");
+            const time = document.getElementById("lastUpdate");
+            
+            if (active) {
+                card.classList.add("status-active");
+                text.innerText = "השליח מחובר";
+                text.style.color = "#2ecc71";
+                time.innerText = "עדכון אחרון: " + new Date().toLocaleTimeString();
+            }
+        }
+
         function createInput(containerId, placeholder, cssClass, isRemovable) {
             const container = document.getElementById(containerId);
             const wrapper = document.createElement("div");
             wrapper.className = `input-group ${cssClass}`;
-            
-            // הסרנו את ה-<i> של האייקון מכאן
-            wrapper.innerHTML = `
-                <div class="input-wrapper">
-                    <input type="text" placeholder="${placeholder}">
-                </div>
-            `;
+            wrapper.innerHTML = `<input type="text" placeholder="${placeholder}">`;
 
             const input = wrapper.querySelector("input");
-            
             const autocomplete = new google.maps.places.Autocomplete(input);
             autocomplete.setFields(["geometry", "formatted_address"]);
             
             input.selectedLocation = null;
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
-                if (!place.geometry) {
-                    alert("נא לבחור כתובת תקינה מהרשימה!");
-                    return;
-                }
+                if (!place.geometry) return;
                 input.selectedLocation = {
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng(),
                     address: place.formatted_address
                 };
-                
                 input.style.borderColor = "#2ecc71";
                 input.style.background = "#f0fff4";
             });
@@ -218,44 +319,33 @@
                 btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
                 btn.title = "הסר שורה";
                 btn.onclick = () => container.removeChild(wrapper);
-                wrapper.querySelector(".input-wrapper").appendChild(btn);
+                wrapper.appendChild(btn);
             }
-
             container.appendChild(wrapper);
         }
 
         window.addDrop = function() {
-            createInput("drops-container", "כתובת למסירה...", "drop-field", true);
+            createInput("drops-container", "הוסף כתובת פיזור...", "drop-field", true);
         }
 
         window.dispatchMission = async function() {
             const pickupInput = document.querySelector("#pickup-container input");
-            if (!pickupInput.selectedLocation) {
-                alert("⚠️ חובה להגדיר נקודת איסוף!");
-                return;
-            }
+            if (!pickupInput.selectedLocation) { alert("חובה להזין כתובת איסוף"); return; }
 
             const dropInputs = document.querySelectorAll("#drops-container input");
             const drops = [];
             for (let input of dropInputs) {
-                if (input.selectedLocation) {
-                    drops.push(input.selectedLocation);
-                }
+                if (input.selectedLocation) drops.push(input.selectedLocation);
             }
 
-            if (drops.length === 0) {
-                alert("⚠️ חובה להוסיף לפחות לקוח אחד לפיזור.");
-                return;
-            }
+            if (drops.length === 0) { alert("חובה להוסיף לפחות יעד אחד"); return; }
 
             const finalRoute = [pickupInput.selectedLocation, ...drops];
-
+            
             const btn = document.getElementById("sendBtn");
-            const originalHTML = btn.innerHTML;
-            
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> מעבד ושולח...';
-            btn.style.opacity = "0.7";
-            
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> שולח...';
+
             try {
                 await setDoc(doc(db, "deliveries", "mission1"), {
                     stops: finalRoute,
@@ -263,20 +353,16 @@
                     status: "dispatched"
                 });
                 
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> נשלח בהצלחה!';
                 btn.style.background = "#2ecc71";
-                
+                btn.innerHTML = "נשלח בהצלחה!";
                 setTimeout(() => {
-                    btn.innerHTML = originalHTML;
                     btn.style.background = "#3498db";
-                    btn.style.opacity = "1";
-                }, 3000);
-
+                    btn.innerHTML = oldText;
+                }, 2000);
             } catch (e) {
                 console.error(e);
-                alert("שגיאה: " + e.message);
-                btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> שגיאה';
-                btn.style.background = "#e74c3c";
+                alert("שגיאה בשליחה");
+                btn.innerHTML = oldText;
             }
         }
 
